@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - BookClick{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2 class="mb-4">
+                <i class="fas fa-cog"></i> Admin Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ total_users }}</h3>
+                            <p class="mb-0">Total Users</p>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-primary-dark">
+                    <a href="/admin/accounts/user/" class="text-white text-decoration-none">
+                        View Details <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ total_rooms }}</h3>
+                            <p class="mb-0">Total Rooms</p>
+                        </div>
+                        <i class="fas fa-door-open fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-success-dark">
+                    <a href="{% url 'rooms_list' %}" class="text-white text-decoration-none">
+                        Manage Rooms <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ total_bookings }}</h3>
+                            <p class="mb-0">Total Bookings</p>
+                        </div>
+                        <i class="fas fa-calendar-alt fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-info-dark">
+                    <a href="{% url 'bookings_list' %}" class="text-white text-decoration-none">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ pending_bookings }}</h3>
+                            <p class="mb-0">Pending Approval</p>
+                        </div>
+                        <i class="fas fa-clock fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-warning-dark">
+                    <a href="{% url 'bookings_list' %}?status=PENDING" class="text-white text-decoration-none">
+                        Review Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Bookings -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-hourglass-half"></i> Pending Bookings (Require Approval)</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_list %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Room</th>
+                                    <th>Title</th>
+                                    <th>Date & Time</th>
+                                    <th>Attendees</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in pending_list %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ booking.user.get_full_name }}</strong><br>
+                                        <small class="text-muted">{{ booking.user.email }}</small>
+                                    </td>
+                                    <td><strong>{{ booking.room.name }}</strong><br><small>{{ booking.room.building }}</small></td>
+                                    <td>{{ booking.title }}</td>
+                                    <td>
+                                        {{ booking.date|date:"M d, Y" }}<br>
+                                        <small>{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</small>
+                                    </td>
+                                    <td>{{ booking.number_of_attendees }}</td>
+                                    <td>
+                                        <a href="{% url 'booking_approve' booking.pk %}" class="btn btn-sm btn-success" 
+                                           onclick="return confirm('Approve this booking?')">
+                                            <i class="fas fa-check"></i> Approve
+                                        </a>
+                                        <a href="{% url 'booking_reject' booking.pk %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times"></i> Reject
+                                        </a>
+                                        <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <p class="text-muted">No pending bookings</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Room</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in recent_bookings %}
+                                <tr>
+                                    <td>#{{ booking.id }}</td>
+                                    <td>{{ booking.user.get_full_name }}</td>
+                                    <td>{{ booking.room.name }}</td>
+                                    <td>{{ booking.date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if booking.status == 'APPROVED' %}success{% elif booking.status == 'PENDING' %}warning{% elif booking.status == 'REJECTED' %}danger{% else %}secondary{% endif %}">
+                                            {{ booking.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ booking.created_at|date:"M d, H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Statistics -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Most Booked Rooms</h5>
+                </div>
+                <div class="card-body">
+                    {% if room_stats %}
+                    <ul class="list-group list-group-flush">
+                        {% for room in room_stats %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ room.name }}</strong><br>
+                                <small class="text-muted">{{ room.building }}</small>
+                            </div>
+                            <span class="badge badge-primary badge-pill">{{ room.booking_count }} bookings</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-tools"></i> Quick Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{% url 'room_create' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle text-success"></i> Add New Room
+                        </a>
+                        <a href="/admin/accounts/user/" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users text-primary"></i> Manage Users
+                        </a>
+                        <a href="{% url 'bookings_list' %}?status=PENDING" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tasks text-warning"></i> Review Pending Bookings
+                        </a>
+                        <a href="/admin/" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog text-secondary"></i> Django Admin Panel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

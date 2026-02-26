@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Booking - BookClick{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if is_edit %}edit{% else %}calendar-plus{% endif %}"></i>
+                        {% if is_edit %}Edit Booking{% else %}New Booking{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="bookingForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_room"><i class="fas fa-door-open"></i> Room *</label>
+                                    {{ form.room }}
+                                    {% if form.room.errors %}
+                                        <div class="text-danger">{{ form.room.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_number_of_attendees"><i class="fas fa-users"></i> Number of attendees *</label>
+                                    {{ form.number_of_attendees }}
+                                    <small class="form-text text-muted">Maximum capacity: <span id="roomCapacity">-</span></small>
+                                    {% if form.number_of_attendees.errors %}
+                                        <div class="text-danger">{{ form.number_of_attendees.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_title"><i class="fas fa-heading"></i> Title *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_description"><i class="fas fa-align-left"></i> Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_date"><i class="far fa-calendar-alt"></i> Start date *</label>
+                                    {{ form.date }}
+                                    {% if form.date.errors %}
+                                        <div class="text-danger">{{ form.date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_end_date"><i class="far fa-calendar-alt"></i> End date (optional)</label>
+                                    {{ form.end_date }}
+                                    <small class="form-text text-muted">Leave empty for a single day booking</small>
+                                    {% if form.end_date.errors %}
+                                        <div class="text-danger">{{ form.end_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_start_time"><i class="far fa-clock"></i> Start time *</label>
+                                    {{ form.start_time }}
+                                    {% if form.start_time.errors %}
+                                        <div class="text-danger">{{ form.start_time.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_end_time"><i class="far fa-clock"></i> End time *</label>
+                                    {{ form.end_time }}
+                                    {% if form.end_time.errors %}
+                                        <div class="text-danger">{{ form.end_time.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Note :</strong> Your booking will be pending for validation by an administrator.
+                        </div>
+                        
+                        <div class="form-group text-right">
+                            <a href="{% if booking %}{% url 'booking_detail' booking.pk %}{% else %}{% url 'bookings_list' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Mettre à jour la capacité de la salle lorsqu'une salle est sélectionnée
+    function updateRoomCapacity() {
+        var roomSelect = document.getElementById('id_room');
+        var capacitySpan = document.getElementById('roomCapacity');
+        if (roomSelect && capacitySpan) {
+            var selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            if (selectedOption.value) {
+                // Récupérer la capacité depuis l'attribut data-capacity ou du texte de l'option
+                var capacity = selectedOption.getAttribute('data-capacity') || 
+                              selectedOption.text.match(/\(Capacity: (\d+)\)/)[1];
+                capacitySpan.textContent = capacity;
+                
+                // Mettre à jour le max du nombre de participants
+                var attendeesInput = document.getElementById('id_number_of_attendees');
+                if (attendeesInput) {
+                    attendeesInput.setAttribute('max', capacity);
+                    checkCapacity();
+                }
+            } else {
+                capacitySpan.textContent = '-';
+            }
+        }
+    }
+    
+    // Vérifier si le nombre de participants dépasse la capacité de la salle
+    function checkCapacity() {
+        var roomSelect = document.getElementById('id_room');
+        var attendeesInput = document.getElementById('id_number_of_attendees');
+        var submitButton = document.querySelector('button[type="submit"]');
+        
+        if (roomSelect && attendeesInput) {
+            var selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            if (selectedOption.value) {
+                var capacity = parseInt(selectedOption.getAttribute('data-capacity') || 
+                                      selectedOption.text.match(/\(Capacity: (\d+)\)/)[1]);
+                var attendees = parseInt(attendeesInput.value) || 0;
+                
+                if (attendees > capacity) {
+                    attendeesInput.setCustomValidity('Le nombre de participants dépasse la capacité de la salle');
+                    if (submitButton) submitButton.disabled = true;
+                } else {
+                    attendeesInput.setCustomValidity('');
+                    if (submitButton) submitButton.disabled = false;
+                }
+                
+                // Mettre à jour l'affichage
+                attendeesInput.reportValidity();
+            }
+        }
+    }
+    
+    // Gérer les changements de date de début et de fin
+    function handleDateChanges() {
+        var startDateInput = document.getElementById('id_date');
+        var endDateInput = document.getElementById('id_end_date');
+        
+        if (startDateInput && endDateInput) {
+            // Si la date de fin est vide, la définir comme égale à la date de début
+            if (!endDateInput.value && startDateInput.value) {
+                endDateInput.value = startDateInput.value;
+            }
+            
+            // Mettre à jour le min de la date de fin
+            if (startDateInput.value) {
+                endDateInput.min = startDateInput.value;
+                
+                // Si la date de fin est antérieure à la date de début, la mettre à jour
+                if (endDateInput.value && new Date(endDateInput.value) < new Date(startDateInput.value)) {
+                    endDateInput.value = startDateInput.value;
+                }
+            }
+        }
+    }
+    
+    // Valider les heures
+    function validateTimes() {
+        var startTimeInput = document.getElementById('id_start_time');
+        var endTimeInput = document.getElementById('id_end_time');
+        var submitButton = document.querySelector('button[type="submit"]');
+        
+        if (startTimeInput && endTimeInput && startTimeInput.value && endTimeInput.value) {
+            if (startTimeInput.value >= endTimeInput.value) {
+                endTimeInput.setCustomValidity('L\'heure de fin doit être après l\'heure de début');
+                if (submitButton) submitButton.disabled = true;
+                return false;
+            } else {
+                endTimeInput.setCustomValidity('');
+                if (submitButton) submitButton.disabled = false;
+                return true;
+            }
+        }
+        return true;
+    }
+    
+    // Initialization
+    $(document).ready(function() {
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        $('#id_date').attr('min', today);
+        $('#id_end_date').attr('min', today);
+        
+        // Initialisation des gestionnaires d'événements
+        updateRoomCapacity();
+        checkCapacity();
+        handleDateChanges();
+        validateTimes();
+        
+        // Écouteurs pour la capacité de la salle
+        $('#id_room, #id_number_of_attendees').on('change keyup', function() {
+            updateRoomCapacity();
+            checkCapacity();
+        });
+        
+        // Gestion des dates
+        $('#id_date, #id_end_date').on('change', function() {
+            handleDateChanges();
+        });
+        
+        // Validation des heures
+        $('#id_start_time, #id_end_time').on('change keyup', function() {
+            validateTimes();
+        });
+        
+        // Validation du formulaire avant soumission
+        $('#bookingForm').on('submit', function(e) {
+            if (!validateTimes()) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        });
+    });
+});
+</script>
+{% endblock %}

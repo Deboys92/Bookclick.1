@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bookings - BookClick{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-calendar-alt"></i> My Bookings</h2>
+                <a href="{% url 'booking_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> New Booking
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card filter-section shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="get">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="status"><i class="fas fa-filter"></i> Status</label>
+                                    <select class="form-control" id="status" name="status">
+                                        <option value="">All Status</option>
+                                        {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="room"><i class="fas fa-door-open"></i> Room</label>
+                                    <select class="form-control" id="room" name="room">
+                                        <option value="">All Rooms</option>
+                                        {% for room in rooms %}
+                                        <option value="{{ room.id }}" {% if request.GET.room == room.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ room.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="date"><i class="fas fa-calendar"></i> Date</label>
+                                    <input type="date" class="form-control" id="date" name="date" value="{{ request.GET.date }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="d-block">&nbsp;</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="show_all" name="show_all" 
+                                               value="true" {% if request.GET.show_all %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_all">
+                                            Show past bookings
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{% url 'bookings_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Attendees</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ booking.room.name }}</strong><br>
+                                        <small class="text-muted">{{ booking.room.building }}</small>
+                                    </td>
+                                    <td>{{ booking.title }}</td>
+                                    <td>{{ booking.date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}
+                                    </td>
+                                    <td>{{ booking.number_of_attendees }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if booking.status == 'APPROVED' %}success{% elif booking.status == 'PENDING' %}warning{% elif booking.status == 'REJECTED' %}danger{% else %}secondary{% endif %}">
+                                            {{ booking.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if booking.user == user and booking.status == 'PENDING' %}
+                                            <a href="{% url 'booking_edit' booking.pk %}" class="btn btn-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if booking.user == user or user.is_admin %}
+                                            <a href="{% url 'booking_cancel' booking.pk %}" class="btn btn-danger" title="Cancel"
+                                               onclick="return confirm('Cancel this booking?')">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                        <h4>No bookings found</h4>
+                        <p class="text-muted">Start by creating your first booking</p>
+                        <a href="{% url 'booking_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Create Booking
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

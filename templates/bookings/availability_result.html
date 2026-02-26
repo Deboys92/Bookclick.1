@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Availability Result - BookClick{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-8 offset-md-2">
+            {% if available %}
+            <div class="card shadow border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-check-circle"></i> Room Available!</h4>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                    <h3>{{ room.name }} is Available</h3>
+                    <p class="lead">{{ room.building }}</p>
+                    
+                    <div class="alert alert-info mt-4">
+                        <p class="mb-0">
+                            <strong>Date:</strong> {{ date|date:"l, F d, Y" }}<br>
+                            <strong>Time:</strong> {{ start_time }} - {{ end_time }}
+                        </p>
+                    </div>
+                    
+                    <a href="{% url 'booking_create' %}?room={{ room.id }}" class="btn btn-success btn-lg mt-3">
+                        <i class="fas fa-calendar-plus"></i> Book This Room Now
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-times-circle"></i> Room Not Available</h4>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-times-circle fa-5x text-danger mb-4"></i>
+                    <h3>{{ room.name }} is Not Available</h3>
+                    <p class="lead">{{ room.building }}</p>
+                    
+                    <div class="alert alert-warning mt-4">
+                        <p class="mb-0">
+                            <strong>Date:</strong> {{ date|date:"l, F d, Y" }}<br>
+                            <strong>Time:</strong> {{ start_time }} - {{ end_time }}
+                        </p>
+                    </div>
+                    
+                    {% if conflicts %}
+                    <div class="alert alert-danger text-left mt-4">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Conflicting Bookings:</h5>
+                        <ul class="mb-0">
+                            {% for conflict in conflicts %}
+                            <li>
+                                {{ conflict.start_time|time:"H:i" }} - {{ conflict.end_time|time:"H:i" }}
+                                ({{ conflict.title }})
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <p class="mt-3">Please choose a different time slot or room.</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'check_availability' %}" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Check Another Time
+                </a>
+                <a href="{% url 'rooms_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-door-open"></i> Browse Rooms
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

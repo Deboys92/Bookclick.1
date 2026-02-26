@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - BookClick{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4><i class="fas fa-user-plus"></i> Create Your Account</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="registerForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_first_name"><i class="fas fa-user"></i> First Name *</label>
+                                    <input type="text" class="form-control" id="id_first_name" name="first_name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_last_name"><i class="fas fa-user"></i> Last Name *</label>
+                                    <input type="text" class="form-control" id="id_last_name" name="last_name" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_email"><i class="fas fa-envelope"></i> Institutional Email *</label>
+                            <input type="email" class="form-control" id="id_email" name="email" 
+                                   placeholder="your.name@university.edu" required>
+                            <small class="form-text text-muted">Use your university email address</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_username"><i class="fas fa-user-circle"></i> Username *</label>
+                            <input type="text" class="form-control" id="id_username" name="username" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_password"><i class="fas fa-lock"></i> Password *</label>
+                                    <input type="password" class="form-control" id="id_password" name="password" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_password_confirm"><i class="fas fa-lock"></i> Confirm Password *</label>
+                                    <input type="password" class="form-control" id="id_password_confirm" 
+                                           name="password_confirm" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_role"><i class="fas fa-user-tag"></i> Role *</label>
+                            <select class="form-control" id="id_role" name="role" required>
+                                <option value="">Select your role...</option>
+                                <option value="STUDENT">Student</option>
+                                <option value="TEACHER">Teacher</option>
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_student_id"><i class="fas fa-id-card"></i> Student/Employee ID</label>
+                                    <input type="text" class="form-control" id="id_student_id" name="student_id">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_phone_number"><i class="fas fa-phone"></i> Phone Number</label>
+                                    <input type="tel" class="form-control" id="id_phone_number" name="phone_number">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_department"><i class="fas fa-building"></i> Department/Faculty</label>
+                            <input type="text" class="form-control" id="id_department" name="department" 
+                                   placeholder="e.g., Computer Science, Engineering">
+                        </div>
+                        
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#">Terms and Conditions</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-user-plus"></i> Register
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <p class="mb-0">
+                            Already have an account? 
+                            <a href="{% url 'login' %}">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('id_password').value;
+    const confirmPassword = document.getElementById('id_password_confirm').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        return false;
+    }
+});
+</script>
+{% endblock %}

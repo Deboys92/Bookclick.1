@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
-from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
@@ -36,8 +36,10 @@ def home(request):
 
 def send_verification_email(user, request):
     """Send verification email to the user"""
+    print(f"Sending verification email to {user.email}")  # Debug print
     token = default_token_generator.make_token(user)
     uid = user.pk
+    uidb64 = urlsafe_base64_encode(force_bytes(uid))
     domain = request.get_host()
     
     subject = 'Verify your BookClick account'
@@ -45,6 +47,7 @@ def send_verification_email(user, request):
         'user': user,
         'domain': domain,
         'uid': uid,
+        'uidb64': uidb64,
         'token': token,
     })
     plain_message = strip_tags(html_message)
@@ -63,9 +66,11 @@ def verify_email(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
+        user.is_verified = True
         
         if default_token_generator.check_token(user, token):
             user.is_active = True
+            user.is_verified = True
             user.save()
             messages.success(request, 'Your email has been verified! You can now log in.')
         else:
@@ -81,6 +86,7 @@ def register_view(request):
         return redirect('dashboard')
     
     if request.method == 'POST':
+        print("POST request received")  # Debug
         # Get form data
         email = request.POST.get('email')
         username = request.POST.get('username')
@@ -93,21 +99,27 @@ def register_view(request):
         phone_number = request.POST.get('phone_number')
         department = request.POST.get('department')
         
+        print(f"Form data: email={email}, username={username}")  # Debug
+        
         # Validate passwords match
         if password != password_confirm:
+            print("Passwords don't match")  # Debug
             messages.error(request, 'Passwords do not match!')
             return render(request, 'registration/register.html')
         
         # Check if email already exists
         if User.objects.filter(email=email).exists():
+            print("Email already exists")  # Debug
             messages.error(request, 'Email already registered!')
             return render(request, 'registration/register.html')
         
         # Check if username already exists
         if User.objects.filter(username=username).exists():
+            print("Username already exists")  # Debug
             messages.error(request, 'Username already taken!')
             return render(request, 'registration/register.html')
         
+        print("Creating user...")  # Debug
         try:
             # Create the user (initially inactive)
             user = User.objects.create_user(
@@ -122,17 +134,21 @@ def register_view(request):
                 department=department,
                 is_active=False  # User will be activated after email verification
             )
+            print(f"User created: {user.username}, {user.email}")  # Debug
             
             # Send verification email
+            print("About to send verification email")  # Debug
             try:
                 send_verification_email(user, request)
+                print("Verification email sent successfully")  # Debug
                 messages.success(request, 'Registration successful! Please check your email to verify your account.')
                 return redirect('login')
             except Exception as e:
+                print(f"Error sending verification email: {e}")  # Debug
                 user.delete()  # Clean up if email sending fails
                 messages.error(request, 'Failed to send verification email. Please try again.')
-                print(f"Error sending verification email: {e}")
         except Exception as e:
+            print(f"Error creating user: {e}")  # Debug
             messages.error(request, f'Registration failed: {str(e)}')
             return render(request, 'registration/register.html')
     
@@ -282,22 +298,3 @@ def resend_verification_email(request):
             return redirect('resend-verification')
     
     return render(request, 'registration/resend_verification.html')
-
-    def resend_verification_email(request):
-        if request.method == 'POST':
-            email = request.POST.get('email')
-            try:
-                user= User.objects.get(email=email)
-                if user.is_verified:
-                    messages.info(request,'Email is already verified.')
-                    return redirect('login')
-                
-                user.generate_new_token()
-                send__verification_email(user,request)
-                message.success(request,'verification email sent. please check your inbox.')
-                return redirect('login')
-            except User.DoesNotExist:
-                messages.error(request,'no accoount found with this email.')
-
-
-                return render(request, ' registration/resend_verification.html')

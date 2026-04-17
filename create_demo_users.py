@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Fixed version for Railway deployment
 import os
 import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookclick.settings')
@@ -29,7 +30,7 @@ def create_demo_users():
             'password': 'sandy',
             'role': 'student',
             'is_staff': False,
-            'is_superuser': true,
+            'is_superuser': True,
         },
         {
             'email': 'teacher@bookclick.com',

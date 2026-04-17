@@ -121,7 +121,7 @@ def register_view(request):
         
         print("Creating user...")  # Debug
         try:
-            # Create the user (initially inactive)
+            # Create the user (automatically active - no email verification needed)
             user = User.objects.create_user(
                 username=username,
                 email=email,
@@ -132,21 +132,20 @@ def register_view(request):
                 student_id=student_id,
                 phone_number=phone_number,
                 department=department,
-                is_active=False  # User will be activated after email verification
+                is_active=True,  # User is automatically active
+                is_verified=True  # Mark as verified
             )
-            print(f"User created: {user.username}, {user.email}")  # Debug
-            
-            # Send verification email
-            print("About to send verification email")  # Debug
+            print(f"User created and activated: {user.username}, {user.email}")  # Debug
+
+            # Optional: Send welcome email (non-blocking)
             try:
-                send_verification_email(user, request)
-                print("Verification email sent successfully")  # Debug
-                messages.success(request, 'Registration successful! Please check your email to verify your account.')
-                return redirect('login')
+                send_welcome_email(user, request)
+                print("Welcome email sent successfully")  # Debug
             except Exception as e:
-                print(f"Error sending verification email: {e}")  # Debug
-                user.delete()  # Clean up if email sending fails
-                messages.error(request, 'Failed to send verification email. Please try again.')
+                print(f"Welcome email failed (non-critical): {e}")  # Debug
+
+            messages.success(request, 'Registration successful! You can now log in with your credentials.')
+            return redirect('login')
         except Exception as e:
             print(f"Error creating user: {e}")  # Debug
             messages.error(request, f'Registration failed: {str(e)}')
@@ -168,12 +167,16 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            login(request, user)
-            messages.success(request, f'Welcome back, {user.get_full_name()}!')
-            
-            # Redirect to next page or dashboard
-            next_page = request.GET.get('next', 'dashboard')
-            return redirect(next_page)
+            if user.is_active:
+                login(request, user)
+                messages.success(request, f'Welcome back, {user.get_full_name()}!')
+
+                # Redirect to next page or dashboard
+                next_page = request.GET.get('next', 'dashboard')
+                return redirect(next_page)
+            else:
+                messages.error(request, 'Your account is not active. Please contact an administrator.')
+                return redirect('login')
         else:
             messages.error(request, 'Invalid email or password!')
     

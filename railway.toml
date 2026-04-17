@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn bookclick.wsgi:application"
+startCommand = "python manage.py migrate && gunicorn bookclick.wsgi:application"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 

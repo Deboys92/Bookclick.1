@@ -19,6 +19,7 @@ def create_demo_users():
             'role': 'admin',
             'is_staff': True,
             'is_superuser': True,
+            'is_active': True,
         },
         {
             'email': 'sandy@gmail.com',

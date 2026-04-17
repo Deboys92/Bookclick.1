@@ -22,6 +22,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     
+    # Debug admin test
+    path('test-admin/', lambda request: f"User: {request.user.email} | Staff: {request.user.is_staff} | Superuser: {request.user.is_superuser}" if request.user.is_authenticated else "Not authenticated"),
+    
     # API endpoints
     path('api/auth/', include('accounts.urls')),
     path('api/rooms/', include('rooms.urls')),

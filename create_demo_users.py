@@ -79,11 +79,21 @@ def create_demo_users():
         created_count += 1
     
     print(f"\n🎉 {created_count} utilisateurs recréés avec succès!")
+    
     print("\n📋 Comptes disponibles :")
     print("🔑 Admin: admin@bookclick.com / admin123")
     print("👨‍🎓 Étudiant: sandy@gmail.com / sandy")
     print("👨‍🏫 Professeur: teacher@bookclick.com / teacher123")
     print("⚡ SuperAdmin: superadmin@bookclick.com / superadmin123")
+    
+    print("\n🔍 DIAGNOSTIC DES UTILISATEURS :")
+    all_users = User.objects.all()
+    for user in all_users:
+        print(f"  📧 {user.email}")
+        print(f"     👤 Username: {user.username}")
+        print(f"     🔐 Staff: {user.is_staff} | Superuser: {user.is_superuser} | Active: {user.is_active}")
+        print(f"     ✅ Email vérifié: {user.is_verified}")
+        print()
 
 if __name__ == '__main__':
     create_demo_users()

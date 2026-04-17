@@ -56,19 +56,40 @@ def create_demo_users():
     ]
     
     created_count = 0
+    updated_count = 0
     for user_data in demo_users:
         email = user_data.pop('email')
         password = user_data.pop('password')
         
-        if not User.objects.filter(email=email).exists():
-            if user_data.get('is_superuser', False):
-                User.objects.create_superuser(email=email, password=password, **user_data)
-            else:
-                User.objects.create_user(email=email, password=password, **user_data)
+        user, created = User.objects.get_or_create(email=email, defaults=user_data)
+        
+        if created:
+            user.set_password(password)
+            user.save()
             print(f"✅ Utilisateur créé : {email}")
             created_count += 1
         else:
-            print(f"ℹ️  Utilisateur existe déjà : {email}")
+            # Mettre à jour les permissions si l'utilisateur existe
+            needs_update = False
+            for key, value in user_data.items():
+                if getattr(user, key) != value:
+                    setattr(user, key, value)
+                    needs_update = True
+            
+            if needs_update:
+                user.save()
+                print(f"🔄 Utilisateur mis à jour : {email}")
+                updated_count += 1
+            else:
+                print(f"ℹ️  Utilisateur existe déjà : {email}")
+        
+        # Forcer la vérification de l'email
+        if not user.is_verified:
+            user.is_verified = True
+            user.save()
+            print(f"✅ Email vérifié pour : {email}")
+    
+    print(f"\n🎉 {created_count} utilisateurs créés, {updated_count} mis à jour!")
     
     print(f"\n🎉 {created_count} utilisateurs créés avec succès!")
     print("\n📋 Comptes disponibles :")

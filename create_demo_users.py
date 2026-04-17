@@ -29,7 +29,7 @@ def create_demo_users():
             'password': 'sandy',
             'role': 'student',
             'is_staff': False,
-            'is_superuser': False,
+            'is_superuser': true,
         },
         {
             'email': 'teacher@bookclick.com',
@@ -38,8 +38,19 @@ def create_demo_users():
             'last_name': 'Demo',
             'password': 'teacher123',
             'role': 'teacher',
-            'is_staff': False,
+            'is_staff': True,
             'is_superuser': False,
+        },
+        {
+            'email': 'superadmin@bookclick.com',
+            'username': 'superadmin',
+            'first_name': 'Super',
+            'last_name': 'Admin',
+            'password': 'superadmin123',
+            'role': 'admin',
+            'is_staff': True,
+            'is_superuser': True,
+            'is_active': True,
         },
     ]
     
@@ -63,6 +74,7 @@ def create_demo_users():
     print("🔑 Admin: admin@bookclick.com / admin123")
     print("👨‍🎓 Étudiant: sandy@gmail.com / sandy")
     print("👨‍🏫 Professeur: teacher@bookclick.com / teacher123")
+    print("⚡ SuperAdmin: superadmin@bookclick.com / superadmin123")
 
 if __name__ == '__main__':
     create_demo_users()

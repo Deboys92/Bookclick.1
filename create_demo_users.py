@@ -29,7 +29,7 @@ def create_demo_users():
             'last_name': 'User',
             'password': 'sandy',
             'role': 'student',
-            'is_staff': False,
+            'is_staff': True,
             'is_superuser': True,
         },
         {

@@ -49,7 +49,10 @@ def create_demo_users():
         password = user_data.pop('password')
         
         if not User.objects.filter(email=email).exists():
-            User.objects.create_user(email=email, password=password, **user_data)
+            if user_data.get('is_superuser', False):
+                User.objects.create_superuser(email=email, password=password, **user_data)
+            else:
+                User.objects.create_user(email=email, password=password, **user_data)
             print(f"✅ Utilisateur créé : {email}")
             created_count += 1
         else:

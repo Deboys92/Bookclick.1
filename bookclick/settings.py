@@ -187,8 +187,14 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://powerful-success-production-494f.up.railway.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = [
+    "https://powerful-success-production-494f.up.railway.app",
+]
 
 # Email settings - SendGrid for real emails
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

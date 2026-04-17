@@ -56,42 +56,29 @@ def create_demo_users():
     ]
     
     created_count = 0
-    updated_count = 0
     for user_data in demo_users:
         email = user_data.pop('email')
         password = user_data.pop('password')
         
-        user, created = User.objects.get_or_create(email=email, defaults=user_data)
+        # Supprimer l'utilisateur s'il existe pour forcer la recréation
+        if User.objects.filter(email=email).exists():
+            User.objects.filter(email=email).delete()
+            print(f"🗑️  Ancien utilisateur supprimé : {email}")
         
-        if created:
-            user.set_password(password)
-            user.save()
-            print(f"✅ Utilisateur créé : {email}")
-            created_count += 1
+        # Recréer l'utilisateur avec les bonnes permissions
+        if user_data.get('is_superuser', False):
+            user = User.objects.create_superuser(email=email, password=password, **user_data)
         else:
-            # Mettre à jour les permissions si l'utilisateur existe
-            needs_update = False
-            for key, value in user_data.items():
-                if getattr(user, key) != value:
-                    setattr(user, key, value)
-                    needs_update = True
-            
-            if needs_update:
-                user.save()
-                print(f"🔄 Utilisateur mis à jour : {email}")
-                updated_count += 1
-            else:
-                print(f"ℹ️  Utilisateur existe déjà : {email}")
+            user = User.objects.create_user(email=email, password=password, **user_data)
         
         # Forcer la vérification de l'email
-        if not user.is_verified:
-            user.is_verified = True
-            user.save()
-            print(f"✅ Email vérifié pour : {email}")
+        user.is_verified = True
+        user.save()
+        
+        print(f"✅ Utilisateur recréé avec permissions : {email}")
+        created_count += 1
     
-    print(f"\n🎉 {created_count} utilisateurs créés, {updated_count} mis à jour!")
-    
-    print(f"\n🎉 {created_count} utilisateurs créés avec succès!")
+    print(f"\n🎉 {created_count} utilisateurs recréés avec succès!")
     print("\n📋 Comptes disponibles :")
     print("🔑 Admin: admin@bookclick.com / admin123")
     print("👨‍🎓 Étudiant: sandy@gmail.com / sandy")

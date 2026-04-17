@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python manage.py migrate && python create_demo_users.py && gunicorn bookclick.wsgi:application"
+startCommand = "python manage.py migrate && python create_demo_users.py && python test_admin_access.py && gunicorn bookclick.wsgi:application"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 
